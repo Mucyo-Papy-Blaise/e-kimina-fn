@@ -1,16 +1,36 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/providers/theme-provider";
 import { cn } from "@/utils/cn";
 
-export function DashboardTopBar() {
+type DashboardTopBarProps = {
+  onOpenMobileNav: () => void;
+};
+
+export function DashboardTopBar({ onOpenMobileNav }: DashboardTopBarProps) {
   const { theme, toggleTheme, mounted } = useTheme();
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-end gap-2 border-b border-border bg-bg px-4">
-      <span className="mr-auto text-xs font-medium uppercase tracking-wider text-text-muted">
+    <header
+      className={cn(
+        "relative z-20 flex min-h-14 shrink-0 items-center gap-2 border-b border-border bg-bg",
+        "px-3 pt-[max(0px,env(safe-area-inset-top,0px))] pb-0 sm:px-4",
+        "lg:pt-0",
+      )}
+    >
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className="shrink-0 text-text-muted hover:bg-primary-soft hover:text-text lg:hidden"
+        onClick={onOpenMobileNav}
+        aria-label="Open navigation menu"
+      >
+        <Menu className="size-5" />
+      </Button>
+      <span className="mr-auto min-w-0 truncate text-xs font-medium uppercase tracking-wider text-text-muted sm:text-sm">
         Workspace
       </span>
       <Button
@@ -18,20 +38,23 @@ export function DashboardTopBar() {
         variant="outline"
         size="sm"
         className={cn(
-          "border-border bg-secondary text-text hover:bg-primary-soft",
+          "shrink-0 border-border bg-secondary text-text hover:bg-primary-soft",
+          "gap-2 px-2.5 sm:px-3",
         )}
         onClick={() => toggleTheme()}
-        aria-label={mounted && theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+        aria-label={
+          mounted && theme === "dark" ? "Switch to light mode" : "Switch to dark mode"
+        }
       >
         {mounted && theme === "dark" ? (
           <>
-            <Sun className="size-4" />
-            Light
+            <Sun className="size-4 shrink-0" />
+            <span className="hidden sm:inline">Light</span>
           </>
         ) : (
           <>
-            <Moon className="size-4" />
-            Dark
+            <Moon className="size-4 shrink-0" />
+            <span className="hidden sm:inline">Dark</span>
           </>
         )}
       </Button>

@@ -16,9 +16,16 @@ type SidebarNavProps = {
   items: readonly NavItem[];
   collapsed: boolean;
   depth?: number;
+  /** e.g. close mobile drawer after navigation */
+  onNavigate?: () => void;
 };
 
-export function SidebarNav({ items, collapsed, depth = 0 }: SidebarNavProps) {
+export function SidebarNav({
+  items,
+  collapsed,
+  depth = 0,
+  onNavigate,
+}: SidebarNavProps) {
   const pathname = usePathname();
 
   return (
@@ -38,8 +45,9 @@ export function SidebarNav({ items, collapsed, depth = 0 }: SidebarNavProps) {
             <Link
               href={item.href}
               title={collapsed ? item.label : undefined}
+              onClick={() => onNavigate?.()}
               className={cn(
-                "flex items-center gap-3 rounded-radius-sm px-3 py-2.5 text-sm font-medium transition-[background,color] duration-transition",
+                "flex touch-manipulation items-center gap-3 rounded-radius-sm px-3 py-2.5 text-sm font-medium transition-[background,color] duration-transition",
                 active
                   ? "bg-primary-soft text-text"
                   : "text-text-muted hover:bg-secondary-2 hover:text-text",
@@ -63,6 +71,7 @@ export function SidebarNav({ items, collapsed, depth = 0 }: SidebarNavProps) {
                 items={item.children ?? []}
                 collapsed={collapsed}
                 depth={depth + 1}
+                onNavigate={onNavigate}
               />
             ) : null}
           </li>

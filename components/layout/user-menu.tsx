@@ -24,9 +24,10 @@ function initials(fullName: string): string {
 
 type UserMenuProps = {
   collapsed: boolean;
+  onNavigate?: () => void;
 };
 
-export function UserMenu({ collapsed }: UserMenuProps) {
+export function UserMenu({ collapsed, onNavigate }: UserMenuProps) {
   const { user, logout } = useAuth();
 
   if (!user) return null;
@@ -75,7 +76,11 @@ export function UserMenu({ collapsed }: UserMenuProps) {
           asChild
           className="cursor-pointer focus:bg-[var(--color-primary-soft)]"
         >
-          <Link href="/dashboard/profile" className="flex items-center gap-2">
+          <Link
+            href="/dashboard/profile"
+            className="flex items-center gap-2"
+            onClick={() => onNavigate?.()}
+          >
             <User className="size-4" />
             My profile
           </Link>
