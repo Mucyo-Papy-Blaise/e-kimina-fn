@@ -74,7 +74,7 @@ async function request(
 
 export const apiClient = {
   get: (path: string) => request("GET", path),
-  post: (path: string, body: JsonObject) => request("POST", path, body),
+  post: (path: string, body?: JsonObject) => request("POST", path, body),
   put: (path: string, body: JsonObject) => request("PUT", path, body),
   patch: (path: string, body: JsonObject) => request("PATCH", path, body),
   delete: (path: string) => request("DELETE", path),

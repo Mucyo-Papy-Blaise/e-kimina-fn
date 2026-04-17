@@ -7,3 +7,12 @@ export const API_AUTH_PATHS = {
   register: "/auth/register",
   profile: "/auth/profile",
 } as const;
+
+/** Authenticated Nest `GroupsController` (`/api/groups`). */
+export const API_GROUPS_PATHS = {
+  list: "/groups",
+  /** `view=mine` | `view=discover` | legacy `publicOnly=true` */
+  listPublic: "/groups?publicOnly=true",
+  create: "/groups",
+  join: (groupId: string) => `/groups/${encodeURIComponent(groupId)}/join`,
+} as const;

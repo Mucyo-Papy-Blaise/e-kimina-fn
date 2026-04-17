@@ -1,10 +1,5 @@
-import { DashboardStub } from "@/components/dashboard/dashboard-stub";
+import { GroupsContent } from "@/components/dashboard/groups/groups-content";
 
 export default function GroupsPage() {
-  return (
-    <DashboardStub
-      title="Groups"
-      description="Manage and browse your groups."
-    />
-  );
+  return <GroupsContent />;
 }
