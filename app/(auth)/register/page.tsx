@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
@@ -11,10 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getApiErrorMessage } from "@/lib/api/error-utils";
+import { fetchTreasurerInvitationPreview } from "@/lib/api/auth-api";
+import { toast } from "sonner";
 import { toastAuthError, toastRegisterSuccess } from "@/lib/auth-toast";
 import { useRegisterMutation } from "@/lib/auth/auth-queries";
 import { ApiError } from "@/lib/query/query-client";
-import type { RegisterRequest } from "@/types/auth";
+import type { RegisterRequest, RegisterResult } from "@/types/auth";
 import {
   registerFormSchema,
   type RegisterFormValues,
@@ -26,17 +28,29 @@ const STEPS = [
   { id: "profile", label: "Set up your profile" },
 ] as const;
 
-function toRegisterRequest(values: RegisterFormValues): RegisterRequest {
-  return {
-    email: values.email,
+function toRegisterRequest(
+  values: RegisterFormValues,
+  invitationToken: string | null,
+): RegisterRequest {
+  const base: RegisterRequest = {
+    email: values.email.trim().toLowerCase(),
     password: values.password,
     fullName: `${values.firstName.trim()} ${values.lastName.trim()}`.trim(),
   };
+  if (invitationToken) {
+    return { ...base, invitationToken };
+  }
+  return base;
 }
 
-export default function RegisterPage() {
+function RegisterPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const invitationToken = searchParams.get("invitation");
   const [showPassword, setShowPassword] = useState(false);
+  const [inviteEmailLocked, setInviteEmailLocked] = useState(false);
+  /** False until we know whether `invitation` query param is valid (or absent). */
+  const [inviteResolved, setInviteResolved] = useState(false);
   const registerMutation = useRegisterMutation();
 
   const form = useForm<RegisterFormValues>({
@@ -49,12 +63,53 @@ export default function RegisterPage() {
     },
   });
 
+  useEffect(() => {
+    if (!invitationToken) {
+      setInviteEmailLocked(false);
+      setInviteResolved(true);
+      return;
+    }
+    let cancelled = false;
+    void fetchTreasurerInvitationPreview(invitationToken)
+      .then((r) => {
+        if (!cancelled) {
+          form.setValue("email", r.email);
+          setInviteEmailLocked(true);
+          setInviteResolved(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          toastAuthError("Invalid or expired invitation link.");
+          setInviteEmailLocked(false);
+          setInviteResolved(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [invitationToken, form]);
+
   const inputClassName =
     "rounded-md border-border bg-secondary-2 px-4 py-3 text-text placeholder:text-text-muted transition duration-150 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary";
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await registerMutation.mutateAsync(toRegisterRequest(values));
+      const result: RegisterResult = await registerMutation.mutateAsync(
+        toRegisterRequest(
+          values,
+          inviteEmailLocked ? invitationToken : null,
+        ),
+      );
+      if ("needsEmailVerification" in result && result.needsEmailVerification) {
+        toast.success("Check your email", {
+          description: "Enter the 6-digit code to verify your account.",
+        });
+        router.push(
+          `/verify-email?email=${encodeURIComponent(result.email)}`,
+        );
+        return;
+      }
       toastRegisterSuccess();
       router.push("/dashboard");
       router.refresh();
@@ -135,12 +190,17 @@ export default function RegisterPage() {
             <Label htmlFor="email" className="text-sm font-medium text-text">
               Email
             </Label>
+            {invitationToken && !inviteResolved ? (
+              <p className="text-xs text-text-muted">Loading invitation…</p>
+            ) : null}
             <Input
               id="email"
               type="email"
               autoComplete="email"
               placeholder="eg. johnfrans@gmail.com"
               className={inputClassName}
+              readOnly={Boolean(invitationToken && inviteEmailLocked)}
+              aria-readonly={invitationToken && inviteEmailLocked ? true : undefined}
               {...form.register("email")}
             />
             {form.formState.errors.email ? (
@@ -179,7 +239,10 @@ export default function RegisterPage() {
 
         <Button
           type="submit"
-          disabled={registerMutation.isPending}
+          disabled={
+            registerMutation.isPending ||
+            Boolean(invitationToken && !inviteResolved)
+          }
           className="w-full rounded-md bg-text py-3 text-sm font-semibold text-bg transition duration-150 hover:opacity-90 disabled:opacity-60"
         >
           {registerMutation.isPending ? "Creating account…" : "Sign Up"}
@@ -193,5 +256,30 @@ export default function RegisterPage() {
         </p>
       </form>
     </AuthSplitLayout>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense
+      fallback={
+        <AuthSplitLayout
+          title={
+            <>
+              Get Started
+              <br />
+              with Us
+            </>
+          }
+          subtitle=""
+          steps={STEPS}
+          activeStepIndex={0}
+        >
+          <p className="text-sm text-text-muted">Loading…</p>
+        </AuthSplitLayout>
+      }
+    >
+      <RegisterPageContent />
+    </Suspense>
   );
 }

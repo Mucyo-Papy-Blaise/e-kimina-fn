@@ -55,13 +55,6 @@ export const navigationConfig: NavigationConfig = [
         icon: Users,
         roles: [ROLE.GROUP_ADMIN, ROLE.SUPER_ADMIN],
       },
-      {
-        id: "learners",
-        label: "Learners",
-        href: "/dashboard/learners",
-        icon: Users,
-        roles: [ROLE.GROUP_ADMIN, ROLE.TREASURER],
-      },
     ],
   },
   {

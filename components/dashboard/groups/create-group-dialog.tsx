@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getApiErrorMessage } from "@/lib/api/error-utils";
 import { useCreateGroupMutation } from "@/lib/query/groups-queries";
@@ -27,7 +26,7 @@ import {
 } from "@/lib/schemas/group-schema";
 import { cn } from "@/utils/cn";
 
-const STEP1_FIELDS = ["name", "description", "maxMembers", "isPublic"] as const;
+const STEP1_FIELDS = ["name", "description", "maxMembers"] as const;
 
 const inputClassName =
   "rounded-md border-border bg-secondary-2 px-4 py-3 text-text placeholder:text-text-muted transition duration-150 focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary";
@@ -35,7 +34,6 @@ const inputClassName =
 const defaultValues: CreateGroupFormValues = {
   name: "",
   description: "",
-  isPublic: true,
   maxMembers: 30,
   treasurerEmail: "",
 };
@@ -70,13 +68,13 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
       await createMutation.mutateAsync({
         name: values.name.trim(),
         description: values.description?.trim() || undefined,
-        isPublic: values.isPublic,
+        isPublic: false,
         maxMembers: values.maxMembers,
         treasurerEmail: values.treasurerEmail.trim().toLowerCase(),
       });
       toast.success("Group created", {
         description:
-          "Your treasurer has been added. Verification by a platform admin is still required for loans.",
+          "New groups are private. Your treasurer was added or invited by email. Invite more members from My groups. Loan tools unlock after platform verification.",
       });
       onOpenChange(false);
     } catch (e) {
@@ -113,14 +111,15 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
             </Button>
           </div>
           <DialogDescription className="text-left text-sm text-text-muted">
-            Two quick steps: group details, then assign a treasurer from registered users.
+            Two quick steps: group details, then invite your treasurer by email. If they do not have an
+            account yet, they will receive a link to register and become treasurer.
           </DialogDescription>
           <ol className="flex gap-2" aria-label="Steps">
             {[0, 1].map((i) => (
               <li
                 key={i}
                 className={cn(
-                  "h-1.5 flex-1 rounded-full transition-colors duration-[var(--transition)]",
+                  "h-1.5 flex-1 rounded-full transition-colors duration-(--transition)",
                   step === i ? "bg-primary" : "bg-border",
                 )}
               />
@@ -188,34 +187,13 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
                     </p>
                   ) : null}
                 </div>
-
-                <Controller
-                  control={form.control}
-                  name="isPublic"
-                  render={({ field }) => (
-                    <div className="flex items-start gap-3 rounded-[var(--radius-sm)] border border-border bg-secondary px-3 py-3">
-                      <Switch
-                        id="cg-public"
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                      <div className="space-y-0.5">
-                        <Label htmlFor="cg-public" className="cursor-pointer text-text">
-                          Public directory
-                        </Label>
-                        <p className="text-xs leading-relaxed text-text-muted">
-                          List this group so others can discover and join (capacity permitting).
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                />
               </div>
             ) : (
               <div className="space-y-4">
                 <p className="text-sm leading-relaxed text-text-muted">
-                  The treasurer manages funds alongside you. They must already have an account on
-                  E-Kimina — use the email they registered with.
+                  The treasurer manages funds alongside you. Enter their email: if they already use
+                  E-Kimina, they are added immediately; otherwise they get an invitation to register
+                  and their account stays inactive until they complete sign-up from the link.
                 </p>
                 <div className="space-y-2">
                   <Label htmlFor="cg-treasurer" className="text-text">
@@ -235,8 +213,8 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
                     </p>
                   ) : null}
                 </div>
-                <div className="rounded-[var(--radius-sm)] border border-border bg-secondary/80 px-3 py-2.5 text-xs text-text-muted">
-                  You stay <span className="font-medium text-text">Group admin</span>. Max members
+                <div className="rounded-(--radius-sm) border border-border bg-secondary/80 px-3 py-2.5 text-xs text-text-muted">
+                  You stay <span className="font-medium text-text">Group admin</span>. Min members
                   must cover at least you and the treasurer.
                 </div>
               </div>

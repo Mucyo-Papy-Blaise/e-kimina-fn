@@ -28,6 +28,7 @@ export const userResponseSchema = z.object({
   fullName: z.string(),
   phoneNumber: z.string().nullable(),
   image: z.string().nullable(),
+  emailVerified: z.boolean(),
   platformRole: roleNameSchema,
   groupMemberships: z.array(groupMembershipSchema),
   createdAt: z.string(),
@@ -38,6 +39,17 @@ export const authResponseSchema = z.object({
   accessToken: z.string(),
   user: userResponseSchema,
 }) satisfies z.ZodType<AuthResponse>;
+
+export const registerPendingResponseSchema = z.object({
+  needsEmailVerification: z.literal(true),
+  email: z.string().email(),
+  message: z.string().optional(),
+});
+
+export const registerResultSchema = z.union([
+  registerPendingResponseSchema,
+  authResponseSchema,
+]);
 
 export const loginRequestSchema = z.object({
   email: z.string().email("Enter a valid email address"),
@@ -53,6 +65,7 @@ export const registerRequestSchema = z.object({
     .max(160),
   phoneNumber: z.string().max(32).optional(),
   image: z.string().max(2048).optional(),
+  invitationToken: z.string().min(16).max(128).optional(),
 }) satisfies z.ZodType<RegisterRequest>;
 
 /** Sign-up page fields — combined into `RegisterRequest.fullName` before POST. */
@@ -64,3 +77,22 @@ export const registerFormSchema = z.object({
 });
 
 export type RegisterFormValues = z.infer<typeof registerFormSchema>;
+
+export const verifyEmailRequestSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().length(6).regex(/^\d+$/),
+});
+
+export const forgotPasswordRequestSchema = z.object({
+  email: z.string().email(),
+});
+
+export const verifyResetOtpRequestSchema = z.object({
+  email: z.string().email(),
+  otp: z.string().length(6).regex(/^\d+$/),
+});
+
+export const completePasswordResetRequestSchema = z.object({
+  resetToken: z.string().min(10),
+  password: z.string().min(8).max(72),
+});

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import { GroupRemovalBanners } from "@/components/dashboard/group-removal-banners";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { DashboardTopBar } from "@/components/layout/dashboard-top-bar";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -78,7 +79,10 @@ export function AppShell({ children }: AppShellProps) {
       />
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
         <DashboardTopBar onOpenMobileNav={() => setMobileNavOpen(true)} />
-        <main className="min-h-0 flex-1 overflow-auto overscroll-y-contain p-page">{children}</main>
+        <main className="min-h-0 flex-1 overflow-auto overscroll-y-contain p-page">
+          <GroupRemovalBanners />
+          {children}
+        </main>
       </div>
     </div>
   );

@@ -5,7 +5,14 @@
 export const API_AUTH_PATHS = {
   login: "/auth/login",
   register: "/auth/register",
+  verifyEmail: "/auth/verify-email",
+  resendVerification: "/auth/resend-verification",
+  forgotPassword: "/auth/forgot-password",
+  resetPasswordVerifyOtp: "/auth/reset-password/verify-otp",
+  resetPasswordComplete: "/auth/reset-password/complete",
   profile: "/auth/profile",
+  /** `GET ?token=` — public; resolves email for treasurer invitation registration. */
+  treasurerInvitationPreview: "/auth/treasurer-invitation",
 } as const;
 
 /** Authenticated Nest `GroupsController` (`/api/groups`). */

@@ -34,7 +34,12 @@ export function showAuthToast({
         onAction={onAction}
       />
     ),
-    { duration },
+    {
+      duration,
+      /** Card supplies its own surface; strip Sonner wrapper so we do not double borders. */
+      unstyled: true,
+      className: "!p-0 !bg-transparent !border-0 !shadow-none",
+    },
   );
 }
 

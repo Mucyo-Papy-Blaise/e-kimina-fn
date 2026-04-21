@@ -77,7 +77,7 @@ export const apiClient = {
   post: (path: string, body?: JsonObject) => request("POST", path, body),
   put: (path: string, body: JsonObject) => request("PUT", path, body),
   patch: (path: string, body: JsonObject) => request("PATCH", path, body),
-  delete: (path: string) => request("DELETE", path),
+  delete: (path: string, body?: JsonObject) => request("DELETE", path, body),
   async postFormData(path: string, formData: FormData): Promise<JsonValue> {
     const token = tokenStorage.get();
     const headers: HeadersInit = {};

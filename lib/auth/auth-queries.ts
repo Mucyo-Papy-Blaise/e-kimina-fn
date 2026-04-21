@@ -2,10 +2,29 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { fetchProfile, login, register } from "@/lib/api/auth-api";
+import {
+  completePasswordReset,
+  fetchProfile,
+  forgotPassword,
+  login,
+  register,
+  resendVerification,
+  verifyEmail,
+  verifyResetOtp,
+} from "@/lib/api/auth-api";
 import { tokenStorage } from "@/lib/api/api-client";
 import { ApiError } from "@/lib/api/query-client";
-import type { AuthResponse, LoginRequest, RegisterRequest } from "@/types/auth";
+import type {
+  AuthResponse,
+  CompletePasswordResetRequest,
+  ForgotPasswordRequest,
+  LoginRequest,
+  RegisterRequest,
+  RegisterResult,
+  ResendVerificationRequest,
+  VerifyEmailRequest,
+  VerifyResetOtpRequest,
+} from "@/types/auth";
 import { authKeys } from "./auth-keys";
 import { useHasStoredToken } from "./use-token-state";
 
@@ -44,9 +63,48 @@ export function useRegisterMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: RegisterRequest) => register(body),
+    onSuccess: (data: RegisterResult) => {
+      if ("accessToken" in data && data.accessToken) {
+        tokenStorage.set(data.accessToken);
+        queryClient.setQueryData(authKeys.profile(), data.user);
+      }
+    },
+  });
+}
+
+export function useVerifyEmailMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: VerifyEmailRequest) => verifyEmail(body),
     onSuccess: (data: AuthResponse) => {
       tokenStorage.set(data.accessToken);
       queryClient.setQueryData(authKeys.profile(), data.user);
     },
+  });
+}
+
+export function useResendVerificationMutation() {
+  return useMutation({
+    mutationFn: (body: ResendVerificationRequest) =>
+      resendVerification(body),
+  });
+}
+
+export function useForgotPasswordMutation() {
+  return useMutation({
+    mutationFn: (body: ForgotPasswordRequest) => forgotPassword(body),
+  });
+}
+
+export function useVerifyResetOtpMutation() {
+  return useMutation({
+    mutationFn: (body: VerifyResetOtpRequest) => verifyResetOtp(body),
+  });
+}
+
+export function useCompletePasswordResetMutation() {
+  return useMutation({
+    mutationFn: (body: CompletePasswordResetRequest) =>
+      completePasswordReset(body),
   });
 }

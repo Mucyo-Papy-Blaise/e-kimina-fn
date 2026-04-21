@@ -144,6 +144,12 @@ export default function LoginPage() {
             Create one
           </Link>
         </p>
+        <p className="text-center text-sm text-text-muted">
+          Need to verify your email?{" "}
+          <Link href="/verify-email" className="font-semibold text-text transition duration-150 hover:opacity-90">
+            Enter verification code
+          </Link>
+        </p>
       </form>
     </AuthSplitLayout>
   );

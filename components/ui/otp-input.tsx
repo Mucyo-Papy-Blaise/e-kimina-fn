@@ -8,10 +8,24 @@ export interface OTPInputProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   onChange?: (value: string) => void;
   length?: number;
   disabled?: boolean;
+  /** If true, only 0–9 (e.g. email / SMS codes). Default allows A–Z and 0–9. */
+  numericOnly?: boolean;
 }
 
 const OTPInput = React.forwardRef<HTMLInputElement, OTPInputProps>(
-  ({ value = '', onChange, length = 6, disabled = false, className, ...props }, ref) => {
+  (
+    {
+      value = '',
+      onChange,
+      length = 6,
+      disabled = false,
+      numericOnly = false,
+      className,
+      autoComplete,
+      ...props
+    },
+    ref,
+  ) => {
     const [otp, setOtp] = React.useState<string[]>(Array(length).fill(''));
     const inputRefs = React.useRef<(HTMLInputElement | null)[]>([]);
 
@@ -23,9 +37,15 @@ const OTPInput = React.forwardRef<HTMLInputElement, OTPInputProps>(
       }
     }, [value, length]);
 
+    const sanitize = (raw: string) => {
+      if (numericOnly) {
+        return raw.replace(/[^0-9]/g, '');
+      }
+      return raw.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    };
+
     const handleChange = (index: number, val: string) => {
-      // Only allow alphanumeric characters and convert to uppercase
-      const sanitized = val.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const sanitized = sanitize(val);
 
       if (sanitized.length === 0) {
         // Handle backspace/delete
@@ -80,7 +100,7 @@ const OTPInput = React.forwardRef<HTMLInputElement, OTPInputProps>(
     const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
       e.preventDefault();
       const pastedData = e.clipboardData.getData('text/plain');
-      const sanitized = pastedData.toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const sanitized = sanitize(pastedData);
 
       if (sanitized) {
         const chars = sanitized.split('').slice(0, length);
@@ -116,7 +136,8 @@ const OTPInput = React.forwardRef<HTMLInputElement, OTPInputProps>(
               }
             }}
             type="text"
-            inputMode="text"
+            inputMode={numericOnly ? 'numeric' : 'text'}
+            autoComplete={numericOnly ? 'one-time-code' : autoComplete}
             maxLength={1}
             value={digit}
             onChange={(e) => handleChange(index, e.target.value)}

@@ -11,13 +11,13 @@ export function AppToaster() {
       position="top-right"
       closeButton={false}
       expand={false}
-      richColors={false}
+      richColors
       theme={mounted && theme === "dark" ? "dark" : "light"}
       gap={12}
       toastOptions={{
-        unstyled: true,
         classNames: {
-          toast: "!bg-transparent !border-0 !p-0 !shadow-none",
+          toast:
+            "group-[.toaster]:rounded-[var(--radius)] group-[.toaster]:border group-[.toaster]:border-border group-[.toaster]:bg-bg group-[.toaster]:text-text group-[.toaster]:shadow-[var(--shadow-md)]",
         },
       }}
     />

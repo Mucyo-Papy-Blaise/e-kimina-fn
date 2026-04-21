@@ -1,13 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Loader2, Plus, Search, Users } from "lucide-react";
+import { Loader2, Plus, Search, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { CreateGroupDialog } from "@/components/dashboard/groups/create-group-dialog";
 import { GroupListCard } from "@/components/dashboard/groups/group-list-card";
+import { InviteMemberDialog } from "@/components/dashboard/groups/invite-member-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getApiErrorMessage } from "@/lib/api/error-utils";
 import { useAuth } from "@/lib/auth/auth-context";
@@ -17,6 +18,7 @@ import {
 } from "@/lib/query/groups-queries";
 import { ApiError } from "@/lib/query/query-client";
 import { cn } from "@/utils/cn";
+import { ROLE } from "@/types/enum";
 import type { Group } from "@/types/group";
 import type { ReactNode } from "react";
 
@@ -36,9 +38,18 @@ function isUserMember(g: Group, userId: string | undefined, memberships: { group
   return memberships.some((m) => m.groupId === g.id);
 }
 
+function roleInGroup(
+  groupId: string,
+  memberships: { groupId: string; role: string }[],
+): string | undefined {
+  return memberships.find((m) => m.groupId === groupId)?.role;
+}
+
 export function GroupsContent() {
   const { user } = useAuth();
   const [createOpen, setCreateOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteTarget, setInviteTarget] = useState<{ id: string; name: string } | null>(null);
   const [mainTab, setMainTab] = useState<MainTab>("mine");
   const [mineSeg, setMineSeg] = useState<MineSegment>("all");
   const [joiningId, setJoiningId] = useState<string | null>(null);
@@ -90,7 +101,7 @@ export function GroupsContent() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <PageHeader
           title="Groups"
-          description="Manage groups you created, or discover public groups from other organizers."
+          description="Groups you belong to, or discover public groups. Group admins can invite, edit, and delete their groups."
           className="mb-0 sm:mb-0"
         />
         <Button
@@ -104,6 +115,18 @@ export function GroupsContent() {
       </div>
 
       <CreateGroupDialog open={createOpen} onOpenChange={setCreateOpen} />
+
+      {inviteTarget ? (
+        <InviteMemberDialog
+          open={inviteOpen}
+          onOpenChange={(o) => {
+            setInviteOpen(o);
+            if (!o) setInviteTarget(null);
+          }}
+          groupId={inviteTarget.id}
+          groupName={inviteTarget.name}
+        />
+      ) : null}
 
       <Tabs
         value={mainTab}
@@ -134,7 +157,7 @@ export function GroupsContent() {
         <TabsContent value="mine" className="mt-6 space-y-5 focus-visible:outline-none">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-text-muted">
-              Groups you created. Verification is required before loan tools unlock.
+              Groups you are a member of. Verification is required before loan tools unlock.
             </p>
             <div
               className="inline-flex flex-wrap gap-1 rounded-[var(--radius-sm)] border border-border bg-bg p-1"
@@ -198,13 +221,37 @@ export function GroupsContent() {
 
           {!mineQuery.isLoading && mineFiltered.length > 0 ? (
             <ul className="space-y-3">
-              {mineFiltered.map((g) => (
-                <GroupListCard
-                  key={g.id}
-                  group={g}
-                  action={<Badge variant="secondary">You&apos;re admin</Badge>}
-                />
-              ))}
+              {mineFiltered.map((g) => {
+                const role = roleInGroup(g.id, memberships);
+                const isGroupAdmin = role === ROLE.GROUP_ADMIN;
+                return (
+                  <GroupListCard
+                    key={g.id}
+                    href={`/dashboard/groups/${g.id}`}
+                    group={g}
+                    action={
+                      <div className="flex flex-col items-end gap-2">
+                        <Badge variant="secondary">{role ?? "Member"}</Badge>
+                        {isGroupAdmin ? (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="gap-1 border-border"
+                            onClick={() => {
+                              setInviteTarget({ id: g.id, name: g.name });
+                              setInviteOpen(true);
+                            }}
+                          >
+                            <UserPlus className="size-3.5" />
+                            Invite member
+                          </Button>
+                        ) : null}
+                      </div>
+                    }
+                  />
+                );
+              })}
             </ul>
           ) : null}
         </TabsContent>
@@ -259,7 +306,14 @@ export function GroupsContent() {
                   );
                 }
 
-                return <GroupListCard key={g.id} group={g} action={action} />;
+                return (
+                  <GroupListCard
+                    key={g.id}
+                    href={member ? `/dashboard/groups/${g.id}` : undefined}
+                    group={g}
+                    action={action}
+                  />
+                );
               })}
             </ul>
           ) : null}
