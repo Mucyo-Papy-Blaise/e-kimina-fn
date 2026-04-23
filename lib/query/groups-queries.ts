@@ -23,10 +23,21 @@ import {
   updateGroup,
   type GroupsListView,
 } from "@/lib/api/groups-api";
+import { fetchContributionConfig, putContributionConfig } from "@/lib/api/contribution-config-api";
+import {
+  fetchDepositPreview,
+  fetchLoanRequestPreview,
+  postDeposit,
+  postLoanApplication,
+} from "@/lib/api/group-finance-api";
+import { fetchLoanConfig, putLoanConfig } from "@/lib/api/loan-config-api";
 import { authKeys } from "@/lib/auth/auth-keys";
 import { groupKeys } from "@/lib/query/group-keys";
 import { ApiError } from "@/lib/query/query-client";
 import type { Group } from "@/types/group";
+import type { UpsertContributionConfigRequest } from "@/types/contribution";
+import type { CreateDepositBody } from "@/types/group-finance";
+import type { UpsertLoanConfigRequest } from "@/types/loan-config";
 
 export function useGroupsQuery(
   view: GroupsListView,
@@ -97,6 +108,108 @@ export function useGroupMembersQuery(groupId: string, enabled = true) {
     queryKey: groupKeys.members(groupId),
     queryFn: () => fetchGroupMembers(groupId),
     enabled: Boolean(groupId) && enabled,
+  });
+}
+
+export function useLoanConfigQuery(groupId: string, enabled = true) {
+  return useQuery({
+    queryKey: groupKeys.loanConfig(groupId),
+    queryFn: () => fetchLoanConfig(groupId),
+    enabled: Boolean(groupId) && enabled,
+  });
+}
+
+export function useUpsertLoanConfigMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      groupId,
+      body,
+    }: {
+      groupId: string;
+      body: UpsertLoanConfigRequest;
+    }) => putLoanConfig(groupId, body),
+    onSuccess: async (_, v) => {
+      await qc.invalidateQueries({ queryKey: groupKeys.loanConfig(v.groupId) });
+    },
+  });
+}
+
+export function useContributionConfigQuery(groupId: string, enabled = true) {
+  return useQuery({
+    queryKey: groupKeys.contributionConfig(groupId),
+    queryFn: () => fetchContributionConfig(groupId),
+    enabled: Boolean(groupId) && enabled,
+  });
+}
+
+export function useUpsertContributionConfigMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      groupId,
+      body,
+    }: {
+      groupId: string;
+      body: UpsertContributionConfigRequest;
+    }) => putContributionConfig(groupId, body),
+    onSuccess: async (_, v) => {
+      await qc.invalidateQueries({
+        queryKey: groupKeys.contributionConfig(v.groupId),
+      });
+    },
+  });
+}
+
+export function useDepositPreviewQuery(groupId: string, enabled = true) {
+  return useQuery({
+    queryKey: groupKeys.financeDepositPreview(groupId),
+    queryFn: () => fetchDepositPreview(groupId),
+    enabled: Boolean(groupId) && enabled,
+  });
+}
+
+export function useLoanRequestPreviewQuery(groupId: string, enabled = true) {
+  return useQuery({
+    queryKey: groupKeys.financeLoanPreview(groupId),
+    queryFn: () => fetchLoanRequestPreview(groupId),
+    enabled: Boolean(groupId) && enabled,
+  });
+}
+
+export function useCreateDepositMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      groupId,
+      body,
+    }: {
+      groupId: string;
+      body: CreateDepositBody;
+    }) => postDeposit(groupId, body),
+    onSuccess: async (_, v) => {
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financeDepositPreview(v.groupId),
+      });
+    },
+  });
+}
+
+export function useCreateLoanApplicationMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      groupId,
+      requestedAmount,
+    }: {
+      groupId: string;
+      requestedAmount: number;
+    }) => postLoanApplication(groupId, requestedAmount),
+    onSuccess: async (_, v) => {
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financeLoanPreview(v.groupId),
+      });
+    },
   });
 }
 

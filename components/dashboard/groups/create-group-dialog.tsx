@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,11 +52,13 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
     defaultValues,
   });
 
-  useEffect(() => {
-    if (!open) return;
-    setStep(0);
-    form.reset(defaultValues);
-  }, [open, form]);
+  const handleOpenChange = (next: boolean) => {
+    if (next) {
+      setStep(0);
+      form.reset(defaultValues);
+    }
+    onOpenChange(next);
+  };
 
   const goNext = async () => {
     const ok = await form.trigger([...STEP1_FIELDS]);
@@ -76,7 +78,7 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
         description:
           "New groups are private. Your treasurer was added or invited by email. Invite more members from My groups. Loan tools unlock after platform verification.",
       });
-      onOpenChange(false);
+      handleOpenChange(false);
     } catch (e) {
       const message =
         e instanceof ApiError || e instanceof Error
@@ -87,7 +89,7 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         hideClose
         className={cn(
@@ -105,7 +107,7 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
               size="icon-sm"
               className="shrink-0 text-text-muted"
               aria-label="Close"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
             >
               ×
             </Button>
@@ -228,7 +230,7 @@ export function CreateGroupDialog({ open, onOpenChange }: CreateGroupDialogProps
                   type="button"
                   variant="outline"
                   className="w-full border-border sm:w-auto"
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => handleOpenChange(false)}
                 >
                   Cancel
                 </Button>
