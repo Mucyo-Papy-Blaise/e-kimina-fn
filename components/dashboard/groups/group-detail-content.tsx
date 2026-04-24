@@ -25,6 +25,8 @@ import { ApiError } from "@/lib/query/query-client";
 import type { GroupMemberRow } from "@/types/group";
 
 import { DepositModal } from "./deposit-modal";
+import { MyManualDepositPendingNotice } from "./my-manual-deposit-pending-notice";
+import { PendingManualDepositsPanel } from "./pending-manual-deposits-panel";
 import { GroupHeader } from "./Group-header";
 import { RequestLoanModal } from "./request-loan-modal";
 import { EditGroupDialog } from "./Edit-group-dialog";
@@ -200,6 +202,7 @@ export function GroupDetailContent({ groupId }: GroupDetailContentProps) {
     contributionConfigQuery.data != null;
   const showFinanceLoanButton =
     g.isVerified && loanConfigQuery.isSuccess && loanConfigQuery.data != null;
+  const canReviewManualDeposits = g.isVerified && (g.isGroupAdmin ?? false);
 
   return (
     <div className="space-y-8">
@@ -240,6 +243,14 @@ export function GroupDetailContent({ groupId }: GroupDetailContentProps) {
         showDepositButton={showFinanceDepositButton}
         showLoanRequestButton={showFinanceLoanButton}
       />
+
+      <MyManualDepositPendingNotice
+        groupId={groupId}
+        isGroupAdmin={isAdmin}
+        isVerified={g.isVerified}
+      />
+
+      {canReviewManualDeposits && <PendingManualDepositsPanel groupId={groupId} />}
 
       <DepositModal
         open={depositModalOpen}

@@ -2,6 +2,8 @@ import { z } from "zod";
 import type {
   DepositPreviewResponse,
   LoanRequestPreviewResponse,
+  MyPendingManualDeposit,
+  PendingManualDeposit,
 } from "./group-finance";
 
 const depositMethodSchema = z.enum(["MTN_MOMO", "MANUAL_TRANSFER"]);
@@ -33,6 +35,34 @@ export const loanRequestPreviewResponseSchema: z.ZodType<LoanRequestPreviewRespo
     allowExceedContribution: z.boolean().optional(),
   })
   .passthrough();
+
+const pendingManualDepositItemSchema: z.ZodType<PendingManualDeposit> = z.object({
+  id: z.string(),
+  amount: z.number(),
+  currency: z.string(),
+  paymentMethod: depositMethodSchema,
+  proofImageUrl: z.string(),
+  createdAt: z.string(),
+  member: z.object({
+    id: z.string(),
+    fullName: z.string(),
+    email: z.string(),
+  }),
+});
+
+export const pendingManualDepositsResponseSchema = z.array(pendingManualDepositItemSchema);
+
+const myPendingManualDepositItemSchema: z.ZodType<MyPendingManualDeposit> = z.object({
+  id: z.string(),
+  amount: z.number(),
+  currency: z.string(),
+  status: z.string(),
+  createdAt: z.string(),
+});
+
+export const myPendingManualDepositsResponseSchema = z.array(
+  myPendingManualDepositItemSchema,
+);
 
 export { depositMethodSchema };
 export type DepositMethodForm = z.infer<typeof depositMethodSchema>;

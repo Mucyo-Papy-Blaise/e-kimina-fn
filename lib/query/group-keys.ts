@@ -13,6 +13,22 @@ export const groupKeys = {
     [...groupKeys.all, "finance", "deposit-preview", groupId] as const,
   financeLoanPreview: (groupId: string) =>
     [...groupKeys.all, "finance", "loan-preview", groupId] as const,
+  financeLoanRepaymentPreview: (groupId: string, memberLoanId: string) =>
+    [
+      ...groupKeys.all,
+      "finance",
+      "loan-repayment-preview",
+      groupId,
+      memberLoanId,
+    ] as const,
+  financeGroupLoanApplications: (groupId: string) =>
+    [...groupKeys.all, "finance", "loan-applications", groupId] as const,
+  financeGroupMemberLoans: (groupId: string) =>
+    [...groupKeys.all, "finance", "member-loans", groupId] as const,
+  financePendingDeposits: (groupId: string) =>
+    [...groupKeys.all, "finance", "pending-deposits", groupId] as const,
+  financeMyPendingManual: (groupId: string) =>
+    [...groupKeys.all, "finance", "my-pending-manual", groupId] as const,
   removalNotifications: () => [...groupKeys.all, "removal-notifications"] as const,
   /** @deprecated use list("discover") */
   publicList: () => [...groupKeys.all, "public"] as const,

@@ -1,10 +1,12 @@
 import {
   BarChart3,
-  CheckSquare,
+  ArrowLeftRight  ,
   LayoutDashboard,
   Settings,
   Users,
   Users2,
+  HandCoins, 
+  TrendingUp
 } from "lucide-react";
 import { ROLE } from "@/types/enum";
 import type { NavigationConfig } from "@/types/navigation";
@@ -29,10 +31,10 @@ export const navigationConfig: NavigationConfig = [
         roles: [ROLE.USER, ROLE.MEMBER, ROLE.GROUP_ADMIN, ROLE.TREASURER],
       },
       {
-        id: "applications",
-        label: "Applications",
-        href: "/dashboard/applications",
-        icon: CheckSquare,
+        id: "transactions",
+        label: "Transactions",
+        href: "/dashboard/transactions",
+        icon: ArrowLeftRight,
         roles: [ROLE.MEMBER, ROLE.GROUP_ADMIN, ROLE.TREASURER],
       },
     ],
@@ -46,14 +48,28 @@ export const navigationConfig: NavigationConfig = [
         label: "Reports",
         href: "/dashboard/financial",
         icon: BarChart3,
-        roles: [ROLE.GROUP_ADMIN, ROLE.TREASURER, ROLE.SUPER_ADMIN],
+        roles: [ROLE.GROUP_ADMIN, ROLE.TREASURER],
+      },
+      {
+        id: "loans",
+        label: "Loans",
+        href: "/dashboard/loans",
+        icon: HandCoins ,
+        roles: [ROLE.MEMBER, ROLE.GROUP_ADMIN, ROLE.TREASURER],
+      },
+      {
+        id: "loans-management",
+        label: "Loans Management",
+        href: "/dashboard/loans-management",
+        icon: TrendingUp,
+        roles: [ROLE.GROUP_ADMIN, ROLE.TREASURER],
       },
       {
         id: "users",
         label: "Users",
         href: "/dashboard/users",
         icon: Users,
-        roles: [ROLE.GROUP_ADMIN, ROLE.SUPER_ADMIN],
+        roles: [ROLE.SUPER_ADMIN],
       },
     ],
   },

@@ -26,13 +26,19 @@ import {
 import { fetchContributionConfig, putContributionConfig } from "@/lib/api/contribution-config-api";
 import {
   fetchDepositPreview,
+  fetchLoanRepaymentPreview,
   fetchLoanRequestPreview,
+  fetchMyPendingManualDeposits,
+  fetchPendingManualDeposits,
+  postConfirmManualDeposit,
   postDeposit,
   postLoanApplication,
+  postRejectManualDeposit,
 } from "@/lib/api/group-finance-api";
 import { fetchLoanConfig, putLoanConfig } from "@/lib/api/loan-config-api";
 import { authKeys } from "@/lib/auth/auth-keys";
 import { groupKeys } from "@/lib/query/group-keys";
+import { userFinanceKeys } from "@/lib/query/user-finance-keys";
 import { ApiError } from "@/lib/query/query-client";
 import type { Group } from "@/types/group";
 import type { UpsertContributionConfigRequest } from "@/types/contribution";
@@ -169,6 +175,21 @@ export function useDepositPreviewQuery(groupId: string, enabled = true) {
   });
 }
 
+export function useLoanRepaymentPreviewQuery(
+  groupId: string,
+  memberLoanId: string | undefined,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: groupKeys.financeLoanRepaymentPreview(
+      groupId,
+      memberLoanId ?? "__none__",
+    ),
+    queryFn: () => fetchLoanRepaymentPreview(groupId, memberLoanId!),
+    enabled: Boolean(groupId && memberLoanId) && enabled,
+  });
+}
+
 export function useLoanRequestPreviewQuery(groupId: string, enabled = true) {
   return useQuery({
     queryKey: groupKeys.financeLoanPreview(groupId),
@@ -191,6 +212,86 @@ export function useCreateDepositMutation() {
       await qc.invalidateQueries({
         queryKey: groupKeys.financeDepositPreview(v.groupId),
       });
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financePendingDeposits(v.groupId),
+      });
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financeMyPendingManual(v.groupId),
+      });
+      if (v.body.memberLoanId) {
+        await qc.invalidateQueries({
+          queryKey: groupKeys.financeLoanRepaymentPreview(
+            v.groupId,
+            v.body.memberLoanId,
+          ),
+        });
+      }
+      await qc.invalidateQueries({ queryKey: userFinanceKeys.all });
+      await qc.invalidateQueries({ queryKey: userFinanceKeys.userLoans() });
+      await qc.invalidateQueries({
+        queryKey: groupKeys.all,
+      });
+    },
+  });
+}
+
+export function useMyPendingManualDepositsQuery(groupId: string, enabled = true) {
+  return useQuery({
+    queryKey: groupKeys.financeMyPendingManual(groupId),
+    queryFn: () => fetchMyPendingManualDeposits(groupId),
+    enabled: Boolean(groupId) && enabled,
+  });
+}
+
+export function usePendingManualDepositsQuery(groupId: string, enabled = true) {
+  return useQuery({
+    queryKey: groupKeys.financePendingDeposits(groupId),
+    queryFn: () => fetchPendingManualDeposits(groupId),
+    enabled: Boolean(groupId) && enabled,
+  });
+}
+
+export function useConfirmManualDepositMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ groupId, depositId }: { groupId: string; depositId: string }) =>
+      postConfirmManualDeposit(groupId, depositId),
+    onSuccess: async (_, v) => {
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financePendingDeposits(v.groupId),
+      });
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financeMyPendingManual(v.groupId),
+      });
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financeDepositPreview(v.groupId),
+      });
+      await qc.invalidateQueries({ queryKey: userFinanceKeys.all });
+      await qc.invalidateQueries({ queryKey: userFinanceKeys.userLoans() });
+    },
+  });
+}
+
+export function useRejectManualDepositMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      groupId,
+      depositId,
+      reason,
+    }: {
+      groupId: string;
+      depositId: string;
+      reason?: string;
+    }) => postRejectManualDeposit(groupId, depositId, { reason }),
+    onSuccess: async (_, v) => {
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financePendingDeposits(v.groupId),
+      });
+      await qc.invalidateQueries({
+        queryKey: groupKeys.financeMyPendingManual(v.groupId),
+      });
+      await qc.invalidateQueries({ queryKey: userFinanceKeys.all });
     },
   });
 }
