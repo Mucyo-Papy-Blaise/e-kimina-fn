@@ -2,6 +2,7 @@
 
 import { Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NotificationBell } from "@/components/layout/notification-bell";
 import { useTheme } from "@/lib/providers/theme-provider";
 import { cn } from "@/utils/cn";
 
@@ -33,6 +34,7 @@ export function DashboardTopBar({ onOpenMobileNav }: DashboardTopBarProps) {
       <span className="mr-auto min-w-0 truncate text-xs font-medium uppercase tracking-wider text-text-muted sm:text-sm">
         Workspace
       </span>
+      <NotificationBell />
       <Button
         type="button"
         variant="outline"

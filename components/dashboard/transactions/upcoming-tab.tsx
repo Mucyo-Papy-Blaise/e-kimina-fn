@@ -23,9 +23,23 @@ function partitionPayments(payments: UpcomingPayment[]) {
   return { pendingConfirmation, overdue, upcoming };
 }
 
-export function UpcomingTab() {
-  const { data, isLoading, isError } = useUserFinanceUpcomingQuery();
-  const payments = data?.items ?? [];
+type UpcomingTabProps = {
+  items?: UpcomingPayment[];
+  isLoadingOverride?: boolean;
+  isErrorOverride?: boolean;
+  onPay?: (payment: UpcomingPayment) => void;
+};
+
+export function UpcomingTab({
+  items,
+  isLoadingOverride,
+  isErrorOverride,
+  onPay,
+}: UpcomingTabProps = {}) {
+  const query = useUserFinanceUpcomingQuery({ enabled: items === undefined });
+  const payments = items ?? query.data?.items ?? [];
+  const isLoading = isLoadingOverride ?? query.isLoading;
+  const isError = isErrorOverride ?? query.isError;
 
   const { pendingConfirmation, overdue, upcoming } = partitionPayments(payments);
   const currency = payments[0]?.currency ?? "RWF";
@@ -62,7 +76,7 @@ export function UpcomingTab() {
             </p>
             <div className="space-y-2">
               {pendingConfirmation.map((p) => (
-                <UpcomingRow key={p.id} payment={p} />
+                <UpcomingRow key={p.id} payment={p} onPay={onPay} />
               ))}
             </div>
           </div>
@@ -75,7 +89,7 @@ export function UpcomingTab() {
             </p>
             <div className="space-y-2">
               {overdue.map((p) => (
-                <UpcomingRow key={p.id} payment={p} />
+                <UpcomingRow key={p.id} payment={p} onPay={onPay} />
               ))}
             </div>
           </div>
@@ -88,7 +102,7 @@ export function UpcomingTab() {
             </p>
             <div className="space-y-2">
               {upcoming.map((p) => (
-                <UpcomingRow key={p.id} payment={p} />
+                <UpcomingRow key={p.id} payment={p} onPay={onPay} />
               ))}
             </div>
           </div>

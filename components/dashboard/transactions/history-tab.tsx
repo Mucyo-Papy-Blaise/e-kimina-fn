@@ -15,7 +15,11 @@ import {
 } from "@/lib/query/user-finance-queries";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 
-export function HistoryTab() {
+type HistoryTabProps = {
+  selectedGroupId?: string;
+};
+
+export function HistoryTab({ selectedGroupId }: HistoryTabProps = {}) {
   const [page, setPage] = useState(1);
   const pageSize = userFinanceHistoryPageSize;
 
@@ -24,9 +28,18 @@ export function HistoryTab() {
   const { data: history, isLoading: historyLoading, isError: historyError } =
     useUserFinanceHistoryQuery(page, pageSize);
 
-  const groupBalances = summary?.groupBalances ?? [];
-  const penaltyBalances = summary?.penaltyBalances ?? [];
-  const transactions = history?.items ?? [];
+  const allGroupBalances = summary?.groupBalances ?? [];
+  const groupBalances = selectedGroupId
+    ? allGroupBalances.filter((b) => b.groupId === selectedGroupId)
+    : allGroupBalances;
+  const allPenaltyBalances = summary?.penaltyBalances ?? [];
+  const penaltyBalances = selectedGroupId
+    ? allPenaltyBalances.filter((p) => p.groupId === selectedGroupId)
+    : allPenaltyBalances;
+  const allTransactions = history?.items ?? [];
+  const transactions = selectedGroupId
+    ? allTransactions.filter((tx) => tx.groupId === selectedGroupId)
+    : allTransactions;
   const totalPages = history?.totalPages ?? 0;
 
   const [selected, setSelected] = useState<TransactionRecord | null>(null);

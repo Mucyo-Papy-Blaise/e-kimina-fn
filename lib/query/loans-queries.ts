@@ -55,6 +55,7 @@ export function useApproveLoanApplicationMutation() {
         queryKey: groupKeys.financeGroupMemberLoans(v.groupId),
       });
       await qc.invalidateQueries({ queryKey: userFinanceKeys.userLoans() });
+      await qc.invalidateQueries({ queryKey: ["user-finance", "notifications"] });
     },
   });
 }
@@ -76,6 +77,7 @@ export function useRejectLoanApplicationMutation() {
         queryKey: groupKeys.financeGroupLoanApplications(v.groupId),
       });
       await qc.invalidateQueries({ queryKey: userFinanceKeys.userLoans() });
+      await qc.invalidateQueries({ queryKey: ["user-finance", "notifications"] });
     },
   });
 }

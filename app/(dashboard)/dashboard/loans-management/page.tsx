@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,6 +16,8 @@ import {
 import { GroupPendingLoanApplicationsTable } from "@/components/dashboard/loan/group-pending-loan-applications-table";
 import { GroupAdminMemberLoanCard } from "@/components/dashboard/loan/group-admin-member-loan-card";
 import { getApiErrorMessage } from "@/lib/api/error-utils";
+import { fetchGroup } from "@/lib/api/groups-api";
+import { groupKeys } from "@/lib/query/group-keys";
 import { useGroupQuery, useGroupsQuery } from "@/lib/query/groups-queries";
 import {
   useApproveLoanApplicationMutation,
@@ -33,8 +36,37 @@ function canManageLoansInGroup(role: Role) {
 
 export default function LoanManagementPage() {
   const groupsQ = useGroupsQuery("mine");
-  const [groupId, setGroupId] = useState<string>("");
+  const [chosenGroupId, setChosenGroupId] = useState<string>("");
   const [actionAppId, setActionAppId] = useState<string | null>(null);
+
+  const roleDetailsQueries = useQueries({
+    queries: (groupsQ.data ?? []).map((g) => ({
+      queryKey: groupKeys.detail(g.id),
+      queryFn: () => fetchGroup(g.id),
+      enabled: Boolean(groupsQ.data?.length),
+    })),
+  });
+
+  const manageableGroupIds = useMemo(() => {
+    const out = new Set<string>();
+    for (const q of roleDetailsQueries) {
+      if (!q.data) continue;
+      if (canManageLoansInGroup(q.data.myRole)) out.add(q.data.id);
+    }
+    return out;
+  }, [roleDetailsQueries]);
+
+  const manageableGroups = useMemo(
+    () => (groupsQ.data ?? []).filter((g) => manageableGroupIds.has(g.id)),
+    [groupsQ.data, manageableGroupIds],
+  );
+
+  const groupId = useMemo(() => {
+    if (chosenGroupId && manageableGroups.some((g) => g.id === chosenGroupId)) {
+      return chosenGroupId;
+    }
+    return manageableGroups[0]?.id ?? "";
+  }, [chosenGroupId, manageableGroups]);
 
   const groupQ = useGroupQuery(groupId, Boolean(groupId));
   const applicationsQ = useGroupLoanApplicationsQuery(
@@ -48,12 +80,6 @@ export default function LoanManagementPage() {
 
   const approveM = useApproveLoanApplicationMutation();
   const rejectM = useRejectLoanApplicationMutation();
-
-  useEffect(() => {
-    const list = groupsQ.data;
-    if (!list?.length || groupId) return;
-    setGroupId(list[0]!.id);
-  }, [groupsQ.data, groupId]);
 
   if (groupsQ.isLoading) {
     return (
@@ -85,6 +111,16 @@ export default function LoanManagementPage() {
     );
   }
 
+  if (manageableGroups.length === 0) {
+    return (
+      <main className="min-h-screen bg-bg-muted/30 py-6">
+        <div className="container mx-auto max-w-6xl px-4 text-text-muted">
+          You are in groups, but only members with role <span className="font-medium text-text">GROUP_ADMIN</span> or <span className="font-medium text-text">TREASURER</span> can manage loans.
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-bg-muted/30 py-6">
       <div className="container mx-auto max-w-6xl space-y-6 px-4">
@@ -104,7 +140,7 @@ export default function LoanManagementPage() {
             <Select
               value={groupId}
               onValueChange={(v) => {
-                setGroupId(v);
+                setChosenGroupId(v);
                 setActionAppId(null);
               }}
             >
@@ -112,7 +148,7 @@ export default function LoanManagementPage() {
                 <SelectValue placeholder="Select group" />
               </SelectTrigger>
               <SelectContent>
-                {groupsQ.data.map((g) => (
+                {manageableGroups.map((g) => (
                   <SelectItem key={g.id} value={g.id}>
                     {g.name}
                   </SelectItem>

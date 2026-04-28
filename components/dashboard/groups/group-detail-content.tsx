@@ -23,6 +23,7 @@ import {
 } from "@/lib/query/groups-queries";
 import { ApiError } from "@/lib/query/query-client";
 import type { GroupMemberRow } from "@/types/group";
+import { ROLE } from "@/types/enum";
 
 import { DepositModal } from "./deposit-modal";
 import { MyManualDepositPendingNotice } from "./my-manual-deposit-pending-notice";
@@ -202,7 +203,9 @@ export function GroupDetailContent({ groupId }: GroupDetailContentProps) {
     contributionConfigQuery.data != null;
   const showFinanceLoanButton =
     g.isVerified && loanConfigQuery.isSuccess && loanConfigQuery.data != null;
-  const canReviewManualDeposits = g.isVerified && (g.isGroupAdmin ?? false);
+  const canReviewManualDeposits =
+    g.isVerified &&
+    (g.isGroupAdmin || g.myRole === ROLE.TREASURER);
 
   return (
     <div className="space-y-8">

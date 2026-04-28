@@ -140,8 +140,8 @@ export function RequestLoanModal({
 
           {isVerified && p?.configured && p.canRequest === false && (
             <p className="text-sm text-amber-600 dark:text-amber-400">
-              You are not eligible to request a loan yet (maximum is 0). Build your
-              contribution history first.
+              {p.message ??
+                "You are not eligible to request a loan yet (maximum is 0). Build your contribution history first."}
             </p>
           )}
 

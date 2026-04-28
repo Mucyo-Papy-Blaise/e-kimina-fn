@@ -85,6 +85,7 @@ export function useJoinGroupMutation() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: groupKeys.all });
       await qc.invalidateQueries({ queryKey: authKeys.profile() });
+      await qc.invalidateQueries({ queryKey: ["user-finance", "notifications"] });
     },
   });
 }
@@ -97,6 +98,7 @@ export function useInviteMemberMutation() {
     onSuccess: async () => {
       await qc.invalidateQueries({ queryKey: groupKeys.all });
       await qc.invalidateQueries({ queryKey: authKeys.profile() });
+      await qc.invalidateQueries({ queryKey: ["user-finance", "notifications"] });
     },
   });
 }
@@ -229,6 +231,12 @@ export function useCreateDepositMutation() {
       await qc.invalidateQueries({ queryKey: userFinanceKeys.all });
       await qc.invalidateQueries({ queryKey: userFinanceKeys.userLoans() });
       await qc.invalidateQueries({
+        queryKey: [
+          "user-finance",
+          "notifications",
+        ],
+      });
+      await qc.invalidateQueries({
         queryKey: groupKeys.all,
       });
     },
@@ -268,6 +276,7 @@ export function useConfirmManualDepositMutation() {
       });
       await qc.invalidateQueries({ queryKey: userFinanceKeys.all });
       await qc.invalidateQueries({ queryKey: userFinanceKeys.userLoans() });
+      await qc.invalidateQueries({ queryKey: ["user-finance", "notifications"] });
     },
   });
 }
@@ -292,6 +301,7 @@ export function useRejectManualDepositMutation() {
         queryKey: groupKeys.financeMyPendingManual(v.groupId),
       });
       await qc.invalidateQueries({ queryKey: userFinanceKeys.all });
+      await qc.invalidateQueries({ queryKey: ["user-finance", "notifications"] });
     },
   });
 }
@@ -310,6 +320,7 @@ export function useCreateLoanApplicationMutation() {
       await qc.invalidateQueries({
         queryKey: groupKeys.financeLoanPreview(v.groupId),
       });
+      await qc.invalidateQueries({ queryKey: ["user-finance", "notifications"] });
     },
   });
 }

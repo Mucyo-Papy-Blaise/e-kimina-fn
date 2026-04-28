@@ -1,12 +1,13 @@
 import {
   BarChart3,
-  ArrowLeftRight  ,
+  ArrowLeftRight,
   LayoutDashboard,
   Settings,
   Users,
   Users2,
-  HandCoins, 
-  TrendingUp
+  HandCoins,
+  TrendingUp,
+  CardSimIcon,
 } from "lucide-react";
 import { ROLE } from "@/types/enum";
 import type { NavigationConfig } from "@/types/navigation";
@@ -31,9 +32,16 @@ export const navigationConfig: NavigationConfig = [
         roles: [ROLE.USER, ROLE.MEMBER, ROLE.GROUP_ADMIN, ROLE.TREASURER],
       },
       {
-        id: "transactions",
-        label: "Transactions",
-        href: "/dashboard/transactions",
+        id: "loans",
+        label: "Loans",
+        href: "/dashboard/loans",
+        icon: HandCoins,
+        roles: [ROLE.MEMBER, ROLE.GROUP_ADMIN, ROLE.TREASURER],
+      },
+      {
+        id: "deposits",
+        label: "Deposits",
+        href: "/dashboard/deposits",
         icon: ArrowLeftRight,
         roles: [ROLE.MEMBER, ROLE.GROUP_ADMIN, ROLE.TREASURER],
       },
@@ -51,17 +59,17 @@ export const navigationConfig: NavigationConfig = [
         roles: [ROLE.GROUP_ADMIN, ROLE.TREASURER],
       },
       {
-        id: "loans",
-        label: "Loans",
-        href: "/dashboard/loans",
-        icon: HandCoins ,
-        roles: [ROLE.MEMBER, ROLE.GROUP_ADMIN, ROLE.TREASURER],
-      },
-      {
         id: "loans-management",
         label: "Loans Management",
         href: "/dashboard/loans-management",
         icon: TrendingUp,
+        roles: [ROLE.GROUP_ADMIN, ROLE.TREASURER],
+      },
+      {
+        id: "manual-payments",
+        label: "Manual Payments",
+        href: "/dashboard/manual-payments",
+        icon: CardSimIcon,
         roles: [ROLE.GROUP_ADMIN, ROLE.TREASURER],
       },
       {

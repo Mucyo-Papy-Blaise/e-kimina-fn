@@ -9,6 +9,7 @@ import {
   Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { UpcomingPayment } from "@/types/transactions";
 import {
   formatDate,
@@ -18,11 +19,15 @@ import {
 } from "@/lib/transactions-utils";
 import { cn } from "@/utils/cn";
 
-type Props = { payment: UpcomingPayment };
+type Props = {
+  payment: UpcomingPayment;
+  onPay?: (payment: UpcomingPayment) => void;
+};
 
-export function UpcomingRow({ payment: p }: Props) {
+export function UpcomingRow({ payment: p, onPay }: Props) {
   const isPendingConfirmation = p.status === "PENDING_CONFIRMATION";
   const isOverdue = p.status === "OVERDUE";
+  const canPayNow = !isPendingConfirmation;
   const days = daysUntil(p.dueDate);
 
   const iconEl =
@@ -59,7 +64,7 @@ export function UpcomingRow({ payment: p }: Props) {
   return (
     <div
       className={cn(
-        "flex items-center gap-4 rounded-(--radius) border px-4 py-3.5 transition-colors",
+        "flex flex-col gap-3 rounded-(--radius) border px-4 py-3.5 transition-colors sm:flex-row sm:items-center",
         isPendingConfirmation
           ? "border-amber-500/30 bg-amber-500/5"
           : isOverdue
@@ -103,6 +108,7 @@ export function UpcomingRow({ payment: p }: Props) {
             {countdown}
           </span>
         </div>
+        <p className="mt-1 text-xs text-text-muted sm:hidden">{p.groupName}</p>
       </div>
 
       <div className="hidden shrink-0 text-xs text-text-muted sm:block">
@@ -114,14 +120,26 @@ export function UpcomingRow({ payment: p }: Props) {
         </Badge>
       </div>
 
-      <p
-        className={cn(
-          "shrink-0 text-sm font-bold tabular-nums",
-          isOverdue ? "text-destructive" : "text-text",
-        )}
-      >
-        {formatCurrency(p.amount, p.currency)}
-      </p>
+      <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-end">
+        <p
+          className={cn(
+            "shrink-0 text-sm font-bold tabular-nums",
+            isOverdue ? "text-destructive" : "text-text",
+          )}
+        >
+          {formatCurrency(p.amount, p.currency)}
+        </p>
+        {canPayNow && onPay ? (
+          <Button
+            type="button"
+            size="sm"
+            className="shrink-0"
+            onClick={() => onPay(p)}
+          >
+            Pay now
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }
